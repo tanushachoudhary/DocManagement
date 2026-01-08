@@ -8,6 +8,7 @@ from app.database import SessionLocal
 from app import crud,schemas
 # crud → database operations
 # schemas → request/response validation (Pydantic)
+from app.database import get_db
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 # Creates a router

@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 import os
-DB_URL  = "mysql+pymysql://root:tanushac1811@localhost:3306/docdb"
+DB_URL  = os.getenv("DB_URL")
 
 engine=create_engine(DB_URL)
 # Creates the SQLAlchemy Engine
@@ -19,3 +19,11 @@ SessionLocal= sessionmaker(bind=engine)
 
 Base=declarative_base()
 #creates base class for ORM models
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

@@ -3,17 +3,30 @@ from app.main import app
 
 client=TestClient(app)
 
+
 def test_create_document():
-    response=client.post("/documents",json={
-        
-        "id":"103",
-        "title": "Notes",
-        "content": "Hello",
-        "owner_id": "u3"
+    client.post("/users", json={
+        "id": "u5",
+        "name": "Elena"
     })
-    assert response.status_code==201
+
+    response = client.post("/documents", json={
+        "id": "105",
+        "title": "ClassNotes",
+        "content": "Hi",
+        "owner_id": "u5"
+    })
+
+    assert response.status_code == 201
+
     
 def test_get_user_documents():
-    response=client.get("/users/u3/documents")
+    # create user first
+    client.post("/users", json={
+        "id": "u5",
+        "name": "Elena"
+    })
+
+    response = client.get("/users/u5/documents")
     assert response.status_code == 200
-    
+    assert response.json() == []

@@ -1,3 +1,4 @@
+from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, HTTPException, status 
 #APIRouter → lets you group related endpoints
 #Depends → FastAPI’s dependency injection system
@@ -9,6 +10,9 @@ from app.database import SessionLocal #SessionLocal creates a database session
 from app import crud,schemas
 # crud → database operations
 # schemas → request/response validation (Pydantic)
+
+from app.database import get_db
+
 
 router = APIRouter(prefix="/users", tags=["users"])
 # Creates a router
@@ -40,8 +44,10 @@ def create_user(user:schemas.UserCreate,db:Session=Depends(get_db)):
 # db → injected DB session
 
 
+
 #GET /users/{user_id}/documents
-@router.get("/{user.id}/documents")
+@router.get("/{user_id}/documents")
 def get_documents(user_id:str, db:Session=Depends(get_db)): #user id comes from url and db is injected
     return crud.get_user_documents(db,user_id) #Fetches all documents owned by the user
     # Returns a list (FastAPI auto-serializes)
+    

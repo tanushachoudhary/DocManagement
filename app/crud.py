@@ -5,26 +5,40 @@ from app import models
 # models.Document
 # map Python objects → database tables
 
+from sqlalchemy.exc import IntegrityError
+
 def create_user(db:Session, user):#db → active SQLAlchemy session
     #user → validated Pydantic schema (UserCreate)
-    db_user = models.User(**user.dict()) 
+    db_user = models.User(**user.model_dump()) 
     #user.dict() converts Pydantic model → Python dictionary
     # ** unpacks the dictionary
     # Creates a User ORM object
     db.add(db_user) #Marks object for insertion
-    db.commit() #Executes SQL INSERT
-    # Persists data permanently
-    # Ends transaction
+    try:
+        db.commit() #Executes SQL INSERT
+        # Persists data permanently
+        # Ends transaction
+        db.refresh(db_user)
+        
+    except IntegrityError:
+        db.rollback()
+        raise
     return db_user #FastAPI + Pydantic (orm_mode) converts it to JSON
     # No manual serialization needed
 
 
 def create_document(db:Session, doc): #Accepts validated document input
     # Uses ORM model
-    db_doc=models.Document(**doc.dict())
+    db_doc=models.Document(**doc.model_dump())
     db.add(db_doc)
-    db.commit()
+    try:
+        db.commit()
+        db.refresh(db_doc)
+    except IntegrityError:
+        db.rollback()
+        raise
     return db_doc
+    
 
 def get_user_documents(db:Session, user_id:str): #Fetch all documents owned by a user
     return db.query(models.Document).filter(

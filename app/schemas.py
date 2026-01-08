@@ -1,4 +1,4 @@
-from pydantic import BaseModel,Field #pydantic handles request validation, data parsing, automatic error response
+from pydantic import BaseModel,Field,ConfigDict #pydantic handles request validation, data parsing, automatic error response
 # BaseModel--> base class for schemas
 # Field--> adds constraint and metadata
 
@@ -23,7 +23,11 @@ class DocumentResponse(BaseModel):
     title:str
     content:str
     
-    #SQLAlchemy object → JSON automatically
-    #Allows Pydantic to read data from: SQLAlchemy ORM objects not just dictionaries
-    class Config:
-        orm_mode=True
+    # #SQLAlchemy object → JSON automatically
+    # #Allows Pydantic to read data from: SQLAlchemy ORM objects not just dictionaries
+    # class Config:
+    #     orm_mode=True
+        
+
+    model_config = ConfigDict(from_attributes=True)
+    
