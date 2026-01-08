@@ -14,7 +14,7 @@ from app import crud,schemas
 from app.database import get_db
 
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/users", tags=["Users"])
 # Creates a router
 # All endpoints here start with: /users
 

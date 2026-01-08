@@ -17,6 +17,8 @@ class Document(Base): #represents a document entity
     
     id = Column(String(50), primary_key=True, index=True)
     filename = Column(String(255), nullable=False)
+    content = Column(Text)
+    owner_id = Column(String(50), index=True)  
     extracted_text = Column(Text, nullable=True)
     
     
