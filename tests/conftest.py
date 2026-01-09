@@ -1,8 +1,11 @@
 import pytest
-from app.database import Base, engine
+from fastapi.testclient import TestClient
+from app.main import app
+import app.services.vector_store as vector_store
 
-@pytest.fixture(autouse=True)
-def reset_db():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    yield
+
+@pytest.fixture(scope="function")
+def client():
+    vector_store.reset_store()
+    with TestClient(app) as c:
+        yield c
