@@ -1,8 +1,11 @@
+from app.core.env import *
 from fastapi import FastAPI
 from app.database import Base,engine
 from app.routers import users,documents,indexing, search
 from app.database import SessionLocal
 from app.models import User, Document
+from app.routers.ai import ai_router
+from app.services.vector_store import load_index
 
 #creates all DB tables defined using SQLAlchemy models
 #this checks if tables already exist and creates them if they don't
@@ -16,14 +19,24 @@ app = FastAPI(
 
 
 @app.on_event("startup")
-def reset_database():
-    db = SessionLocal()
-    try:
-        db.query(Document).delete()
-        db.query(User).delete()
-        db.commit()
-    finally:
-        db.close()
+def startup_event():
+    # 1. Initialize DB tables (keep this)
+    Base.metadata.create_all(bind=engine)
+    
+    # 2. Load the Vector Store from disk
+    load_index()
+    
+from app.services.vector_store import load_index  # <--- Make sure this is imported
+
+
+# def reset_database():
+#     db = SessionLocal()
+#     try:
+#         db.query(Document).delete()
+#         db.query(User).delete()
+#         db.commit()
+#     finally:
+#         db.close()
 
 
 
@@ -41,3 +54,7 @@ app.include_router(indexing.router, tags=["Indexing"])
 
 #POST /search
 app.include_router(search.router, tags=["Search"])
+
+
+#POST /ai/ask
+app.include_router(ai_router)

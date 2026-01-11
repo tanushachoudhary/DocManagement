@@ -75,3 +75,22 @@ def upload_document(
         "extracted_text":extracted_text
     }
     
+# app/routers/documents.py
+from app.services.vector_store import get_chunks_by_doc_id
+
+@router.get("/{document_id}/chunks")
+def view_document_chunks(document_id: str):
+    """
+    Retrieve the raw text chunks for a specific document.
+    Useful for verifying chunk_size and overlap.
+    """
+    chunks = get_chunks_by_doc_id(document_id)
+    
+    if not chunks:
+        return {"message": "No chunks found for this document ID."}
+        
+    return {
+        "document_id": document_id,
+        "total_chunks": len(chunks),
+        "chunks": chunks
+    }

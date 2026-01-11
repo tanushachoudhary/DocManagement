@@ -1,40 +1,29 @@
 from fastapi import APIRouter
-from sentence_transformers import SentenceTransformer
-import numpy as np
+from pydantic import BaseModel
+from typing import List, Optional
 
-from app.services.vector_store import (
-    document_embeddings,
-    document_ids,
-    document_texts,
-)
+# Import the search logic from your existing service
+from app.services.vector_store import similarity_search
 
 router = APIRouter()
 
-model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+# Define a response model for clarity
+class SearchResult(BaseModel):
+    text: str
+    metadata: dict
 
-@router.post("/search")
-def semantic_search(query: str, top_k: int = 3):
-    if not document_embeddings:
-        return {"results": []}
+@router.post("/search", response_model=dict)
+def semantic_search(query: str):
+    # Delegate the work to the vector_store service
+    results = similarity_search(query)
+    
+    # Format the results for the API response
+    formatted_results = [
+        {
+            "text": doc["content"],
+            "metadata": doc["metadata"]
+        }
+        for doc in results
+    ]
 
-    query_embedding = model.encode(query)
-
-    similarities = np.dot(
-        document_embeddings,
-        query_embedding
-    ) / (
-        np.linalg.norm(document_embeddings, axis=1)
-        * np.linalg.norm(query_embedding)
-    )
-
-    top_indices = np.argsort(similarities)[-top_k:][::-1]
-
-    results = []
-    for idx in top_indices:
-        results.append({
-            "document_id": document_ids[idx],
-            "score": float(similarities[idx]),
-            "text": document_texts[idx][:500]
-        })
-
-    return {"results": results}
+    return {"results": formatted_results}
