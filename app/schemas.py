@@ -31,3 +31,9 @@ class DocumentResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
     
+
+class DocumentUploadCreate(BaseModel):
+    id: str
+    filename: str
+    extracted_text: str
+    owner_id: str

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile,File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile,File,Form
 #APIRouter → lets you group related endpoints
 #Depends → FastAPI’s dependency injection system
 #HTTPException → return proper HTTP error responses
@@ -13,7 +13,7 @@ import shutil
 import os
 import uuid
 
-router = APIRouter(prefix="/documents", tags=["documents"])
+router = APIRouter(prefix="/documents", tags=["Documents"])
 # Creates a router
 # All endpoints here start with: /documents
 
@@ -34,7 +34,8 @@ def create_document(doc:schemas.DocumentCreate, db:Session=Depends(get_db)):
 @router.post("/upload",status_code=201)
 def upload_document(
     file: UploadFile = File(...),
-    db: Session=Depends(get_db)
+    user_id: str = Form(...),  # <--- Accept user_id as a Form field
+    db: Session = Depends(get_db)
 ):
     #validate file type
     allowed_types=[
@@ -60,7 +61,8 @@ def upload_document(
     document=Document(
         id=file_id,
         filename=file.filename,
-        extracted_text=extracted_text        
+        extracted_text=extracted_text,
+        owner_id=user_id      
     )
     
     db.add(document)
@@ -69,6 +71,7 @@ def upload_document(
     
     return {
         "document_id":document.id,
+        "owner_id": document.owner_id,
         "extracted_text":extracted_text
     }
     

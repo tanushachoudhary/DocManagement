@@ -29,7 +29,15 @@ def create_user(db:Session, user):#db → active SQLAlchemy session
 
 def create_document(db:Session, doc): #Accepts validated document input
     # Uses ORM model
-    db_doc=models.Document(**doc.model_dump())
+    # db_doc=models.Document(**doc.model_dump())
+    db_doc = models.Document(
+        id=doc.id,
+        title=doc.title,
+        content=doc.content,
+        owner_id=doc.owner_id,
+        filename=None,
+        extracted_text=None
+    )
     db.add(db_doc)
     try:
         db.commit()
@@ -39,7 +47,6 @@ def create_document(db:Session, doc): #Accepts validated document input
         raise
     return db_doc
     
-
 def get_user_documents(db:Session, user_id:str): #Fetch all documents owned by a user
     return db.query(models.Document).filter(
         models.Document.owner_id == user_id
