@@ -97,20 +97,20 @@ def upload_document(
         "message": "File uploaded, saved to DB, indexed, and persisted."
     }
 
-@router.get("/{document_id}/chunks")
-def view_document_chunks(document_id: str):
-    """
-    Retrieve the raw text chunks for a specific document.
-    Useful for verifying chunk_size and overlap.
-    """
-    # Note: Ensure get_chunks_by_doc_id treats IDs as strings!
-    chunks = get_chunks_by_doc_id(document_id)
+# @router.get("/{document_id}/chunks")
+# def view_document_chunks(document_id: str):
+#     """
+#     Retrieve the raw text chunks for a specific document.
+#     Useful for verifying chunk_size and overlap.
+#     """
+#     # Note: Ensure get_chunks_by_doc_id treats IDs as strings!
+#     chunks = get_chunks_by_doc_id(document_id)
     
-    if not chunks:
-        return {"message": "No chunks found for this document ID."}
+#     if not chunks:
+#         return {"message": "No chunks found for this document ID."}
         
-    return {
-        "document_id": document_id,
-        "total_chunks": len(chunks),
-        "chunks": chunks
-    }
+#     return {
+#         "document_id": document_id,
+#         "total_chunks": len(chunks),
+#         "chunks": chunks
+#     }
