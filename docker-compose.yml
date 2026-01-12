@@ -1,27 +1,28 @@
-services:
-  mysql:
-    image: mysql:8.0
-    container_name: mysql-db
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: docdb
-      MYSQL_USER: docuser
-      MYSQL_PASSWORD: docpass
-    ports:
-      - "3307:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
+version: '3.8'
 
-  api:
-    build: .
-    container_name: doc-ocr-api
-    depends_on:
-      - mysql
+services:
+  # Service 1: The FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    environment:
-       DB_HOST: mysql
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads  # Persist uploaded files
+      - ./app:/app/app          # Hot-reload code changes (optional)
 
-volumes:
-  mysql_data:
+  # Service 2: The Streamlit Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://backend:8000  # Tells frontend to talk to 'backend' service
+      - DB_HOST=host.docker.internal
+    depends_on:
+      - backend
