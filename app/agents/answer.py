@@ -1,23 +1,3 @@
-# from app.core.llm import llm
-
-# def generate_answer(state):
-#     context = "\n".join(state["documents"]) or "No relevant documents found."
-    
-#     prompt = f"""
-#     You must answer ONLY using the provided documents.
-#     If the answer is not present, say:
-#     "No relevant documents found for your question."
-
-#     Documents:
-#     {context}
-
-#     Question:
-#     {state["query"]}
-#     """
-    
-#     state["answer"]=llm.invoke(prompt).content
-#     return state
-
 from app.core.llm import llm
 
 def generate_answer(state):

@@ -5,30 +5,32 @@ from app.services.vector_store import similarity_search
 
 router = APIRouter()
 
-# 1. Define the model for a SINGLE result
+# Response Models maintain consistent JSON structure
 class SearchResult(BaseModel):
     text: str
     metadata: dict
 
-# 2. Define the model for the WHOLE response
 class SearchResponse(BaseModel):
     results: List[SearchResult]
 
 @router.post("/search", response_model=SearchResponse)
-def semantic_search(query: str, k: int = 5): # <--- Added 'k' parameter
+def semantic_search(query: str, k: int = 5):
     """
-    Perform semantic search over documents.
-    query: The text to search for.
-    k: Number of results to return (default 5).
-    """
+    Performs purely semantic search (Vector similarity).
+    Does NOT use an LLM to generate answers.
     
-    # Pass 'k' to the service layer
+    Args:
+        query: The raw text to search for (e.g. "invoice total")
+        k: How many results to return (Default: 5)
+    """
+    # Call the FAISS wrapper service
     results = similarity_search(query, k=k)
     
+    # Format the raw output for the frontend
     formatted_results = [
         {
-            "text": doc["content"],
-            "metadata": doc["metadata"]
+            "text": doc["content"], # The actual text chunk
+            "metadata": doc["metadata"] # Contains doc_id, filename, etc.
         }
         for doc in results
     ]
