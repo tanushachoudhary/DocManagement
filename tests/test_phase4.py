@@ -9,14 +9,7 @@ from app.agents.graph import ai_graph
 client = TestClient(app)
 
 # ==========================================
-# 1. UNIT TEST: Intent Classifier
-# ==========================================
-# tests/test_phase4.py
-
-# ... keep your imports ...
-
-# ==========================================
-# 1. UNIT TEST: Intent Classifier (FIXED)
+# 1. UNIT TEST: Intent Classifier 
 # ==========================================
 def test_classify_intent_greeting():
     """Test that greetings are classified as 'no_docs'"""
@@ -43,8 +36,6 @@ def test_classify_intent_search():
         result_state = classify_intent(state)
         
         assert result_state["intent"] == "retrieve"
-
-# ... keep the rest of your tests (they were already passing) ...
 
 # ==========================================
 # 2. INTEGRATION TEST: The Full Graph
