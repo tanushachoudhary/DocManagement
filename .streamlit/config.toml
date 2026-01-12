@@ -1,0 +1,15 @@
+[theme]
+# The primary color (buttons, sliders, active tabs)
+primaryColor = "#33a2f6"
+
+# The background color of the main content area
+backgroundColor = "#FFFFFF"
+
+# The background color of the sidebar and interactive widgets
+secondaryBackgroundColor = "#F0F2F6"
+
+# The text color
+textColor = "#262730"
+
+# Font family (sans serif, serif, or monospace)
+font = "sans serif"
