@@ -79,7 +79,7 @@ def save_index():
     # Save Documents list (Text + Metadata)
     with open(STORE_FILE, "wb") as f:
         pickle.dump(documents, f)
-    print("✅ Index and Documents saved to disk.")
+    print("Index and Documents saved to disk.")
 
 def load_index():
     """Loads the FAISS index and documents list from disk."""
@@ -93,6 +93,6 @@ def load_index():
         with open(STORE_FILE, "rb") as f:
             documents = pickle.load(f)
             
-        print(f"✅ Loaded {index.ntotal} vectors and {len(documents)} chunks from disk.")
+        print(f"Loaded {index.ntotal} vectors and {len(documents)} chunks from disk.")
     else:
-        print("ℹ️ No existing index found. Starting fresh.")
+        print("No existing index found. Starting fresh.")
