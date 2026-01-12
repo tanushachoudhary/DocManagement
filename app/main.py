@@ -17,7 +17,6 @@ app = FastAPI(
     version="2.0"
 )
 
-
 @app.on_event("startup")
 def startup_event():
     # 1. Initialize DB tables (keep this)
@@ -26,19 +25,7 @@ def startup_event():
     # 2. Load the Vector Store from disk
     load_index()
     
-from app.services.vector_store import load_index  # <--- Make sure this is imported
-
-
-# def reset_database():
-#     db = SessionLocal()
-#     try:
-#         db.query(Document).delete()
-#         db.query(User).delete()
-#         db.commit()
-#     finally:
-#         db.close()
-
-
+from app.services.vector_store import load_index  
 
 #Register (include) user related APIs
 #POST /users
@@ -54,7 +41,6 @@ app.include_router(indexing.router, tags=["Indexing"])
 
 #POST /search
 app.include_router(search.router, tags=["Search"])
-
 
 #POST /ai/ask
 app.include_router(ai_router)

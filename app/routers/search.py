@@ -1,23 +1,30 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import List, Optional
-
-# Import the search logic from your existing service
+from typing import List
 from app.services.vector_store import similarity_search
 
 router = APIRouter()
 
-# Define a response model for clarity
+# 1. Define the model for a SINGLE result
 class SearchResult(BaseModel):
     text: str
     metadata: dict
 
-@router.post("/search", response_model=dict)
-def semantic_search(query: str):
-    # Delegate the work to the vector_store service
-    results = similarity_search(query)
+# 2. Define the model for the WHOLE response
+class SearchResponse(BaseModel):
+    results: List[SearchResult]
+
+@router.post("/search", response_model=SearchResponse)
+def semantic_search(query: str, k: int = 5): # <--- Added 'k' parameter
+    """
+    Perform semantic search over documents.
+    query: The text to search for.
+    k: Number of results to return (default 5).
+    """
     
-    # Format the results for the API response
+    # Pass 'k' to the service layer
+    results = similarity_search(query, k=k)
+    
     formatted_results = [
         {
             "text": doc["content"],
