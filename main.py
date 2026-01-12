@@ -7,14 +7,22 @@ from data.persistence import (
     save_documents, load_documents
 )
 
-
 def main():
+    """
+    The main entry point of the CLI application.
+    Initializes stores, loads data, and runs the interaction loop.
+    """
+    
+    # 1. Initialize In-Memory Stores
     user_store = UserStore()
     document_store = DocumentStore()
 
+    # 2. Load Persisted Data (if available)
+    # This ensures previous sessions' data is restored on startup.
     load_users(user_store)
     load_documents(document_store)
 
+    # 3. Main Interaction Loop
     while True:
         print("\n--- Document Management System ---")
         print("1. Add user")
@@ -28,36 +36,41 @@ def main():
 
         choice = input("Choose: ").strip()
 
-        # Add user
+        # --- OPTION 1: Add User ---
         if choice == "1":
             uid = input("User ID: ")
             name = input("Name: ")
             try:
+                # Attempt to create and store the user
                 user_store.add_user(User(uid, name))
+                # Persist changes immediately to disk
                 save_users(user_store)
                 print("User added.")
             except ValueError as e:
+                # Handle duplicate IDs
                 print(e)
 
-        # Delete user
+        # --- OPTION 2: Delete User ---
         elif choice == "2":
             uid = input("User ID to delete: ")
             try:
                 user_store.remove_user(uid)
+                # Update the JSON file after deletion
                 save_users(user_store)
                 print("User deleted.")
             except KeyError as e:
                 print(e)
 
-        # Create document
+        # --- OPTION 3: Create Document ---
         elif choice == "3":
             doc_id = input("Document ID: ")
             title = input("Title: ")
             content = input("Content: ")
             owner = input("Owner ID: ")
 
+            # Validation: Ensure the owner actually exists
             if not user_store.user_exists(owner):
-                print("User does not exist.")
+                print("Error: User does not exist. Cannot assign document.")
                 continue
 
             document_store.add_document(
@@ -66,7 +79,7 @@ def main():
             save_documents(document_store)
             print("Document created.")
 
-        # Read document
+        # --- OPTION 4: Read Document ---
         elif choice == "4":
             doc_id = input("Document ID: ").strip()
             try:
@@ -76,9 +89,8 @@ def main():
                 print("------------------------")
             except KeyError:
                 print("Document not found.")
-            
 
-        # Update document
+        # --- OPTION 5: Update Document ---
         elif choice == "5":
             doc_id = input("Document ID: ")
             content = input("New content: ")
@@ -89,7 +101,7 @@ def main():
             except KeyError:
                 print("Document not found.")
 
-        # Delete document
+        # --- OPTION 6: Delete Document ---
         elif choice == "6":
             doc_id = input("Document ID: ")
             try:
@@ -99,14 +111,16 @@ def main():
             except KeyError:
                 print("Document not found.")
 
+        # --- OPTION 7: List Users ---
         elif choice == "7":
+            print("\n--- Registered Users ---")
             for u in user_store.list_users():
-                print(f"{u.get_id()} - {u.get_name()}")
+                print(f"ID: {u.get_id()} | Name: {u.get_name()}")
 
+        # --- OPTION 8: Exit ---
         elif choice == "8":
             print("Goodbye!")
             break
-
 
 if __name__ == "__main__":
     main()
