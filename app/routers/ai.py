@@ -23,5 +23,6 @@ def ask_ai(request: AskRequest):
     return {
         "question": request.question,
         "answer": result["answer"],
+        "intent": result["intent"]
     }
 
