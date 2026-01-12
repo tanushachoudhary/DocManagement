@@ -3,7 +3,20 @@ from sqlalchemy.orm import sessionmaker,declarative_base #creates DB session(ope
 #declarative_base--> creates base class for ORM models(keeps metadata about tables,columns,constraints)(python classes->DB tables)
 
 import os
-DB_URL = "mysql+pymysql://root:tanushac1811@localhost:3306/docdb"
+
+
+# 1. Fetching credentials from Environment Variables (with defaults for safety)
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "password") 
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_NAME = os.getenv("DB_NAME", "docdb")
+DB_PORT = os.getenv("DB_PORT", "3306")
+
+# 2. Constructing the Connection URL dynamically
+DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+DB_URL = "mysql+pymysql://root:tanushac1811@host.docker.internal:3306/docdb"
+
 engine=create_engine(DB_URL,echo=True)
 # Creates the SQLAlchemy Engine
 # Handles: DB driver (pymysql), connection pooling, SQL compilation
