@@ -10,4 +10,5 @@ langchain
 langgraph
 langchain-core
 langchain-community
+streamlit
 faiss
