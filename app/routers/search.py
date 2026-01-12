@@ -1,40 +1,36 @@
 from fastapi import APIRouter
-from sentence_transformers import SentenceTransformer
-import numpy as np
-
-from app.services.vector_store import (
-    document_embeddings,
-    document_ids,
-    document_texts,
-)
+from pydantic import BaseModel
+from typing import List
+from app.services.vector_store import similarity_search
 
 router = APIRouter()
 
-model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+# 1. Define the model for a SINGLE result
+class SearchResult(BaseModel):
+    text: str
+    metadata: dict
 
-@router.post("/search")
-def semantic_search(query: str, top_k: int = 3):
-    if not document_embeddings:
-        return {"results": []}
+# 2. Define the model for the WHOLE response
+class SearchResponse(BaseModel):
+    results: List[SearchResult]
 
-    query_embedding = model.encode(query)
+@router.post("/search", response_model=SearchResponse)
+def semantic_search(query: str, k: int = 5): # <--- Added 'k' parameter
+    """
+    Perform semantic search over documents.
+    query: The text to search for.
+    k: Number of results to return (default 5).
+    """
+    
+    # Pass 'k' to the service layer
+    results = similarity_search(query, k=k)
+    
+    formatted_results = [
+        {
+            "text": doc["content"],
+            "metadata": doc["metadata"]
+        }
+        for doc in results
+    ]
 
-    similarities = np.dot(
-        document_embeddings,
-        query_embedding
-    ) / (
-        np.linalg.norm(document_embeddings, axis=1)
-        * np.linalg.norm(query_embedding)
-    )
-
-    top_indices = np.argsort(similarities)[-top_k:][::-1]
-
-    results = []
-    for idx in top_indices:
-        results.append({
-            "document_id": document_ids[idx],
-            "score": float(similarities[idx]),
-            "text": document_texts[idx][:500]
-        })
-
-    return {"results": results}
+    return {"results": formatted_results}

@@ -6,3 +6,8 @@ python-multipart
 pytesseract
 pdf2image
 pillow
+langchain
+langgraph
+langchain-core
+langchain-community
+faiss

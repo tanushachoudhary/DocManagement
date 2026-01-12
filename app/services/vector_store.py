@@ -1,61 +1,98 @@
-from sentence_transformers import SentenceTransformer
-from typing import List
+import faiss
 import numpy as np
+import pickle
+import os
+from app.services.embeddings import generate_embedding
 
-# Load model once
-model = SentenceTransformer("all-MiniLM-L6-v2")
+# File paths for persistence
+INDEX_FILE = "vector_index.faiss"
+STORE_FILE = "doc_store.pkl"
 
-# ---- In-memory vector store (TESTABLE) ----
-vectors: List[np.ndarray] = []
-document_ids: List[int] = []
-documents_text: List[str] = []
+DIMENSION = 384  # all-MiniLM-L6-v2
+index = faiss.IndexFlatIP(DIMENSION)  # cosine similarity
+documents = []  # stores chunk text + metadata
 
+def add_chunks(chunks: list[str], metadata: list[dict]):
+    global index, documents
+    
+    if not chunks:
+        return
 
-def reset_store():
-    vectors.clear()
-    document_ids.clear()
-    documents_text.clear()
+    # 1. Generate Vectors
+    vectors = np.array(
+        [generate_embedding(chunk) for chunk in chunks]
+    ).astype("float32")
 
+    # 2. Add to FAISS Index
+    index.add(vectors)
 
-def index_document(document_id: int, text: str):
-    if not text or not text.strip():
-        raise ValueError("Text cannot be empty")
+    # 3. Add to Memory Store
+    for i, chunk in enumerate(chunks):
+        documents.append({
+            "content": chunk,
+            "metadata": metadata[i]
+        })
+    
+    # 4. Save to Disk immediately
+    save_index()
 
-    if document_id in document_ids:
-        raise ValueError("Document already indexed")
-
-    embedding = model.encode(text)
-    vectors.append(embedding)
-    document_ids.append(document_id)
-    documents_text.append(text)
-
-
-def search(query: str, top_k: int = 5):
-    if not query or not query.strip():
-        raise ValueError("Query cannot be empty")
-
-    if not vectors:
+def similarity_search(query: str, k=5, score_threshold=0.4):
+    # Reload logic could go here, but usually we load on startup (see main.py)
+    if index.ntotal == 0:
         return []
 
-    query_embedding = model.encode(query)
+    query_vec = generate_embedding(query).astype("float32").reshape(1, -1)
+    scores, indices = index.search(query_vec, k)
 
-    scores = [
-        float(np.dot(query_embedding, vec) /
-              (np.linalg.norm(query_embedding) * np.linalg.norm(vec)))
-        for vec in vectors
-    ]
+    results = []
+    for score, idx in zip(scores[0], indices[0]):
+        # faiss returns -1 if not found
+        if idx != -1 and score >= score_threshold:
+            # Ensure we don't go out of bounds if documents weren't synced
+            if idx < len(documents):
+                results.append(documents[idx])
 
-    ranked = sorted(
-        zip(document_ids, documents_text, scores),
-        key=lambda x: x[2],
-        reverse=True
-    )
+    return results
 
-    return [
-        {
-            "document_id": doc_id,
-            "score": score,
-            "text": text
-        }
-        for doc_id, text, score in ranked[:top_k]
-    ]
+def get_chunks_by_doc_id(doc_id): # remove type hint for flexible input
+    results = []
+    
+    # Debug print: See what's actually in memory
+    print(f"DEBUG: Total documents in memory: {len(documents)}")
+    
+    for doc in documents:
+        stored_id = doc["metadata"].get("document_id")
+        
+        # Compare as strings to be safe
+        if str(stored_id) == str(doc_id):
+            results.append(doc)
+            
+    return results
+
+# --- Persistence Methods ---
+
+def save_index():
+    """Saves the FAISS index and the documents list to disk."""
+    # Save FAISS index
+    faiss.write_index(index, INDEX_FILE)
+    
+    # Save Documents list (Text + Metadata)
+    with open(STORE_FILE, "wb") as f:
+        pickle.dump(documents, f)
+    print("Index and Documents saved to disk.")
+
+def load_index():
+    """Loads the FAISS index and documents list from disk."""
+    global index, documents
+    
+    if os.path.exists(INDEX_FILE) and os.path.exists(STORE_FILE):
+        # Load FAISS
+        index = faiss.read_index(INDEX_FILE)
+        
+        # Load Documents
+        with open(STORE_FILE, "rb") as f:
+            documents = pickle.load(f)
+            
+        print(f"Loaded {index.ntotal} vectors and {len(documents)} chunks from disk.")
+    else:
+        print("No existing index found. Starting fresh.")
