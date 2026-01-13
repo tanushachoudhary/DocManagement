@@ -7,6 +7,7 @@ from app import crud, schemas
 # Services for the "RAG" part (Chunking & Indexing)
 from app.services.document_store import index_document
 from app.services.vector_store import save_index
+from sqlalchemy.exc import IntegrityError
 
 import shutil
 import os
@@ -17,6 +18,34 @@ router = APIRouter(prefix="/documents", tags=["Documents"])
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+#POST /documents
+# app/routers/documents.py
+
+# 1. Update response_model to use the new schema
+@router.post("", status_code=201, response_model=schemas.DocumentCreateResponse)
+def create_document(doc: schemas.DocumentCreate, db: Session = Depends(get_db)):
+    try:
+        # 2. Create the document using CRUD
+        new_doc = crud.create_document(db, doc)
+        
+        # 3. Return a dictionary that matches DocumentCreateResponse
+        return {
+            "id": new_doc.id,
+            "filename": new_doc.filename,
+            "content": new_doc.content,
+            "extracted_text": new_doc.extracted_text,
+            "owner_id": new_doc.owner_id,
+            "message": "Document created successfully"  # <--- The message you wanted
+        }
+
+    except IntegrityError:
+        raise HTTPException(
+            status_code=400, 
+            detail="Operation failed. User does not exist or Document ID is duplicate."
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 # POST /documents/upload (The Full Pipeline)
 @router.post("/upload", status_code=201)
 def upload_document(
@@ -90,8 +119,9 @@ def upload_document(
     save_index()
 
     return {
-        "document_id": document.id,
+        "id": document.id,           # Matches schema 'id'
         "owner_id": document.owner_id,
+        "extracted_text": extracted_text,
         "extracted_text_length": len(extracted_text),
         "message": "File uploaded, saved to DB, indexed, and persisted."
     }

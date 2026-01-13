@@ -68,7 +68,8 @@ def add_chunks(chunks: list[str], metadata: list[dict]):
     # Save immediately to prevent data loss if the server restarts
     save_index()
 
-def similarity_search(query: str, k=5, score_threshold=0.4):
+# Lower threshold from 0.4 to 0.1 or 0.2 to let these matches through
+def similarity_search(query: str, k=5, score_threshold=0.1):
     """
     Performs a semantic search.
     1. Embeds the user query.
