@@ -22,7 +22,6 @@ def startup_event():
     # 2. Load the Vector Store from disk
     load_index()
     
-from app.services.vector_store import load_index  
 
 #Register (include) user related APIs
 #POST /users

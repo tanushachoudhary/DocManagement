@@ -15,7 +15,7 @@ DB_PORT = os.getenv("DB_PORT", "3306")
 # 2. Constructing the Connection URL dynamically
 DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-DB_URL = "mysql+pymysql://root:tanushac1811@host.docker.internal:3306/docdb"
+DB_URL = "mysql+pymysql://root:tanushac1811@:3306/docdb"
 
 engine=create_engine(DB_URL,echo=True)
 # Creates the SQLAlchemy Engine
