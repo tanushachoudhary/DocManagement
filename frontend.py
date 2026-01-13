@@ -182,47 +182,49 @@ with tab_search:
 # TAB 4: ADMIN / DEBUG
 # Endpoints: POST /documents (Manual Meta), POST /documents/index
 # ==========================================
-with tab_admin:
-    st.warning("For Debugging / Manual operations only")
-    col3, col4= st.columns(2)
     
-    #1 create document metadata POST /documents
+    # #1 create document metadata POST /documents
+    # with col3:
+    #     st.subheader("1. Register Metadata")
+    #     meta_filename = st.text_input("Filename",value = "manual_doc.txt")
+    #     meta_text = st.text_area("Extracted Text",height = 100)
+    #     if st.button("Create DB Entry"):
+    #         try:
+    #             #schema matches DocumentCreate
+    #             payload = {
+    #                 "filename":meta_filename,
+    #                 "extracted_text":meta_text,
+    #                 "owner_id":int(user_id) if user_id.isdigit() else user_id
+    #             }
+    #             res=requests.post(f"{API_BASE_URL}/documents",json=payload)
+    #             if res.status_code == 201:
+    #                 st.success(f"Created! ID: {res.json().get('id')}")
+    #             else:
+    #                 st.error(res.text)
+    #         except Exception as e:
+    #             st.error(str(e))
+                
+# 2. Manual index (POST /documents/index)
+# forces text into vector store manually
+with tab_admin:
+    st.warning("For Manual operations only")
+    col3, col4 = st.columns(2)
+    
+    # Manual Indexing
     with col3:
-        st.subheader("1. Register Metadata")
-        meta_filename = st.text_input("Filename",value = "manual_doc.txt")
-        meta_text = st.text_area("Extracted Text",height = 100)
-        if st.button("Create DB Entry"):
-            try:
-                #schema matches DocumentCreate
-                payload = {
-                    "filename":meta_filename,
-                    "extracted_text":meta_text,
-                    "owner_id":int(user_id) if user_id.isdigit() else user_id
-                }
-                res=requests.post(f"{API_BASE_URL}/documents",json=payload)
-                if res.status_code == 201:
-                    st.success(f"Created! ID: {res.json().get('id')}")
+        st.subheader("Manual Indexing")
+        index_id = st.text_input("Document UUID to Index")
+        index_text = st.text_area("Text to Index", height=100)
+        
+        if st.button("Force Index"):
+            try: 
+                res = requests.post(
+                    f"{API_BASE_URL}/documents/index",
+                    params={"doc_id": index_id, "text": index_text}
+                )
+                if res.status_code == 200:
+                    st.success("Indexed Successfully!")
                 else:
                     st.error(res.text)
             except Exception as e:
                 st.error(str(e))
-                
-# 2. Manual index (POST /documents/index)
-# forces text into vector store manually
-with col4:
-    st.subheader("2. Manual Indexing")
-    index_id = st.text_input("Document UUID to Index")
-    index_text = st.text_area("Text to Index", height=100)
-    
-    if st.button("Force Index"):
-        try: 
-            res=requests.post(
-                f"{API_BASE_URL}/documents/index",
-                params={"doc_id": index_id, "text": index_text}
-            )
-            if res.status_code == 200:
-                st.success("Indexed Successfully!")
-            else:
-                st.error(res.text)
-        except Exception as e:
-            st.error(str(e))

@@ -12,7 +12,7 @@ from app.database import SessionLocal #SessionLocal creates a database session
 from app import crud,schemas
 # crud → database operations
 # schemas → request/response validation (Pydantic)
-
+from typing import List
 from app.database import get_db
 
 
@@ -60,8 +60,14 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 # db → injected DB session
 
 #GET /users/{user_id}/documents
-@router.get("/{user_id}/documents")
-def get_documents(user_id:str, db:Session=Depends(get_db)): #user id comes from url and db is injected
-    return crud.get_user_documents(db,user_id) #Fetches all documents owned by the user
-    # Returns a list (FastAPI auto-serializes)
+@router.get("/{user_id}/documents", response_model=List[schemas.DocumentResponse])
+def get_documents(user_id: str, db: Session = Depends(get_db)):
     
+    # 2. Call the CRUD function
+    documents = crud.get_user_documents(db, user_id)
+    
+    # 3. Safety check: Ensure it returns an empty list, not None
+    if documents is None:
+        return []
+        
+    return documents
