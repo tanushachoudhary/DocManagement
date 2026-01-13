@@ -1,0 +1,62 @@
+# --- Version Control & metadata ---
+.git
+.gitignore
+.gitattributes
+README.md
+
+# --- Dependencies & Virtual Environments ---
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json # Optional: keep if you want exact versions, ignore if you run fresh install
+yarn.lock         # Optional: same as above
+
+# --- IDE & Editor Settings ---
+.vscode/
+
+
+
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# --- Build Outputs & Binaries ---
+dist/
+build/
+bin/
+obj/
+out/
+target/   # Rust/Java
+*.o
+*.a
+*.so
+*.dll
+*.exe
+
+# --- Logs & Temp Files ---
+*.log
+logs/
+tmp/
+temp/
+coverage/
+
+# --- Docker & Secrets (Crucial!) ---
+Dockerfile
+.dockerignore
+docker-compose.yml
+.env* # NEVER copy environment variable files into an image
+id_rsa            # SSH keys
+*.pem

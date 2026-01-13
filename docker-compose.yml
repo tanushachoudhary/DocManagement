@@ -1,7 +1,4 @@
-version: '3.8'
-
 services:
-  # Service 1: The FastAPI Backend
   backend:
     build:
       context: .
@@ -11,10 +8,14 @@ services:
     env_file:
       - .env
     volumes:
-      - ./uploads:/app/uploads  # Persist uploaded files
-      - ./app:/app/app          # Hot-reload code changes (optional)
+      - ./uploads:/app/uploads
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: "0.75"
+    restart: unless-stopped
 
-  # Service 2: The Streamlit Frontend
   frontend:
     build:
       context: .
@@ -22,7 +23,12 @@ services:
     ports:
       - "8501:8501"
     environment:
-      - API_URL=http://backend:8000  # Tells frontend to talk to 'backend' service
-      - DB_HOST=host.docker.internal
+      - API_URL=http://backend:8000
     depends_on:
       - backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+    restart: unless-stopped
