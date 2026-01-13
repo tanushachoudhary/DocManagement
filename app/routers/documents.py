@@ -25,11 +25,15 @@ def upload_document(
     db: Session = Depends(get_db)
 ):
     """
-    Handles the full document ingestion pipeline:
-    1. Validate File -> 2. Save to Disk -> 3. OCR -> 4. SQL DB -> 5. Vector Index
+    Handles the full document lifecycle:
+    1. Validation: Checks file type.
+    2. Storage: Saves file to local disk.
+    3. Processing: Runs OCR to extract text.
+    4. Database: Saves metadata and text to SQL.
+    5. AI Indexing: Chunks text and saves to Vector Store.
     """
     
-    # --- STEP 1: VALIDATION ---
+    # 1. Validate file type
     allowed_types = ["image/png", "image/jpeg", "application/pdf"]
     if file.content_type not in allowed_types:
         raise HTTPException(status_code=400, detail="Unsupported File Type")
@@ -92,6 +96,7 @@ def upload_document(
         "message": "File uploaded, saved to DB, indexed, and persisted."
     }
 
+# Uncomment this endpoint during debugging to verify chunking logic
 # @router.get("/{document_id}/chunks")
 # def view_document_chunks(document_id: str):
 #     """

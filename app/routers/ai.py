@@ -7,29 +7,36 @@ ai_router = APIRouter(prefix="/ai", tags=["AI"])
 
 # Pydantic model ensures the user sends valid JSON: {"question": "some text"}
 class AskRequest(BaseModel):
+    """
+    Request schema for the /ask endpoint.
+    Strictly types the input to ensure we receive a string question.
+    """
     question: str
 
 @ai_router.post("/ask")
 def ask_ai(request: AskRequest):
     """
-    The main chat endpoint. 
-    It passes the user's question into the LangGraph 'Brain' 
-    and returns the AI's decision (intent) and final answer.
+    Main entry point for the RAG agent.
+    
+    1. Receives a user question.
+    2. Invokes the LangGraph state machine.
+    3. Returns the final answer and the intent (classification).
     """
-    # Invoke the LangGraph workflow
-    # We initialize the state with the user's query and empty placeholders
+    
+    # The 'invoke' method starts the graph traversal.
+    # We initialize the state with empty default values.
     result = ai_graph.invoke(
         {
             "query": request.question,
-            "intent": "",       # Will be filled by Intent Agent
-            "documents": [],    # Will be filled by Retriever (if needed)
-            "answer": "",       # Will be filled by Response Agent
+            "intent": "",       # Will be filled by classify_intent node
+            "documents": [],    # Will be filled by retrieve_docs node (if needed)
+            "answer": "",       # Will be filled by generate_answer or no_docs node
         }
     )
 
-    # Return a structured response
+    # Return a structured response including the AI's reasoning (intent)
     return {
         "question": request.question,
         "answer": result["answer"],
-        "intent": result["intent"] # Useful for debugging (did it search or just chat?)
+        "intent": result["intent"]
     }
