@@ -5,48 +5,58 @@ from app.agents.retrieve import retrieve_docs
 from app.agents.answer import generate_answer
 from app.agents.no_docs import no_docs_response
 
+# Initialize the StateGraph with TypedDict schema
 graph = StateGraph(AgentState)
 
-# 1. Add Nodes
-graph.add_node("intent", classify_intent)
-graph.add_node("retrieve", retrieve_docs)
-graph.add_node("answer", generate_answer)
-graph.add_node("no_docs", no_docs_response)
+# ---------------------------
+# 1. Add Nodes (The Workers)
+# ---------------------------
+graph.add_node("intent", classify_intent)  # Step 1: Decide what to do
+graph.add_node("retrieve", retrieve_docs)  # Step 2a: Get data
+graph.add_node("answer", generate_answer)  # Step 2b: Answer with data
+graph.add_node("no_docs", no_docs_response)# Step 2c: Answer without data
 
+# ---------------------------
 # 2. Set Entry Point
+# ---------------------------
+# Every request starts at the 'intent' node
 graph.set_entry_point("intent")
 
-# --- CHANGE STARTS HERE ---
+# ---------------------------
+# 3. Conditional Logic (The Routing)
+# ---------------------------
 
-# 3. Define Logic to Route based on Intent
 def route_intent(state):
-    # This reads the decision made by the 'intent' node
-    # If the LLM said "no_docs", we skip retrieval entirely!
+    """
+    Logic to parse the output of the 'intent' node.
+    Returns the *name* of the next node to visit.
+    """
     if state["intent"] == "no_docs":
         return "no_docs"
     return "retrieve"
 
-# 4. Add the Conditional Edge (The Fork in the Road)
+# Add the fork in the road based on user intent
 graph.add_conditional_edges(
-    "intent",       # Start at the intent node
-    route_intent,   # Run this function
-    {               # Map output to next node
+    "intent",           # Start node
+    route_intent,       # Decision function
+    {                   # Mapping: Result -> Next Node Name
         "retrieve": "retrieve",
         "no_docs": "no_docs"
     }
 )
 
-# --- CHANGE ENDS HERE ---
-
-# 5. Keep your existing logic for "after retrieval" (Safety Net)
-# This is still good! If retrieval runs but finds nothing (empty list),
-# we fallback to 'no_docs' instead of trying to answer with empty context.
 def route_after_retrieval(state):
+    """
+    Safety Net: Checks if retrieval actually found anything.
+    If the vector store returns empty list [], we shouldn't try 
+    to RAG answer. Fallback to general chat.
+    """
     docs = state.get("documents", [])
     if not docs:
         return "no_docs"
     return "answer"
 
+# Add logic after retrieval to handle empty search results
 graph.add_conditional_edges(
     "retrieve",
     route_after_retrieval,
@@ -56,8 +66,12 @@ graph.add_conditional_edges(
     }
 )
 
-# 6. End Points
+# ---------------------------
+# 4. End Points
+# ---------------------------
+# Both answering paths lead to the end of the workflow
 graph.add_edge("answer", END)
 graph.add_edge("no_docs", END)
 
+# Compile the graph into a runnable application
 ai_graph = graph.compile()
