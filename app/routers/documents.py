@@ -35,6 +35,15 @@ def upload_document(
     user_id: str = Form(...),
     db: Session = Depends(get_db)
 ):
+    """
+    Handles the full document lifecycle:
+    1. Validation: Checks file type.
+    2. Storage: Saves file to local disk.
+    3. Processing: Runs OCR to extract text.
+    4. Database: Saves metadata and text to SQL.
+    5. AI Indexing: Chunks text and saves to Vector Store.
+    """
+    
     # 1. Validate file type
     allowed_types = ["image/png", "image/jpeg", "application/pdf"]
     if file.content_type not in allowed_types:
@@ -97,6 +106,7 @@ def upload_document(
         "message": "File uploaded, saved to DB, indexed, and persisted."
     }
 
+# Uncomment this endpoint during debugging to verify chunking logic
 # @router.get("/{document_id}/chunks")
 # def view_document_chunks(document_id: str):
 #     """
