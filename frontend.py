@@ -129,7 +129,22 @@ with tab_chat:
                         st.write(data.get("answer"))
 
                         # Display Metadata (Intent)
-                        st.info(f"**Detected Intent:** {data.get('intent', 'Unknown')}")
+                        intent = data.get('intent', 'Unknown')
+                        st.info(f"**Detected Intent:** {intent}")
+                        
+                        # Display Source Documents (if available)
+                        sources = data.get("sources", [])
+                        if sources and intent == "retrieve":
+                            st.markdown("---")
+                            st.markdown("### Source Documents")
+                            st.caption(f"The answer above was generated using {len(sources)} relevant document chunk(s):")
+                            
+                            for idx, source in enumerate(sources, 1):
+                                with st.expander(f"Source #{idx}"):
+                                    st.text(source)
+                        elif intent == "no_docs":
+                            st.markdown("---")
+                            st.warning("No relevant documents were found to answer this question.")
                     else:
                         st.error(f"Error {response.status_code}: {response.text}")
 

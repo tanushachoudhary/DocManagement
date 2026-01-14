@@ -20,7 +20,13 @@ def ask_ai(request: AskRequest):
     
     1. Receives a user question.
     2. Invokes the LangGraph state machine.
-    3. Returns the final answer and the intent (classification).
+    3. Returns the final answer, intent classification, and source document chunks.
+    
+    The response includes:
+    - question: The original user question
+    - answer: The generated response
+    - intent: Classification ('retrieve' or 'no_docs')
+    - sources: List of document chunks used to generate the answer (empty if no_docs intent)
     """
     
     # The 'invoke' method starts the graph traversal.
@@ -35,8 +41,10 @@ def ask_ai(request: AskRequest):
     )
 
     # Return a structured response including the AI's reasoning (intent)
+    # and the source documents/chunks used (if any)
     return {
         "question": request.question,
         "answer": result["answer"],
-        "intent": result["intent"]
+        "intent": result["intent"],
+        "sources": result.get("documents", [])  # Include retrieved document chunks
     }
