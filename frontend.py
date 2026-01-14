@@ -1,11 +1,9 @@
 import streamlit as st
 import requests
-import json
 import os
 
 # CONFIGURATION
 # If your backend is running locally on port 8000
-
 # If running in Docker, use the service name 'backend'. 
 # If running locally, default to localhost.
 API_BASE_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
@@ -19,7 +17,6 @@ st.set_page_config(
 
 st.title("RAG Document Assistant")
 st.markdown("Upload documents, search them, or ask the AI questions.")
-
 
 # ==========================================
 # SIDEBAR: USER MANAGEMENT
@@ -218,6 +215,7 @@ with tab_search:
     #                 st.error(res.text)
     #         except Exception as e:
     #             st.error(str(e))
+                
                 
 # 2. Manual index (POST /documents/index)
 # forces text into vector store manually

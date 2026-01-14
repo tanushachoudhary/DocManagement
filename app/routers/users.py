@@ -1,41 +1,69 @@
-import logging
-from sqlalchemy.exc import IntegrityError
-from fastapi import APIRouter, Depends, HTTPException, status 
-#APIRouter → lets you group related endpoints
-#Depends → FastAPI's dependency injection system
-#HTTPException → return proper HTTP error responses
-#status → readable HTTP status codes (201, 400, etc.)
+# User management router module
+# Handles user creation and document retrieval for specific users
 
-from app.models import User, Document
+import logging
+# Standard library: provides logging functionality for debugging and monitoring
+
+from sqlalchemy.exc import IntegrityError
+# SQLAlchemy exception: raised when database constraints are violated (e.g., duplicate keys)
+
+from fastapi import APIRouter, Depends, HTTPException, status 
+# APIRouter → lets you group related endpoints under a common prefix
+# Depends → FastAPI's dependency injection system for managing resources
+# HTTPException → return proper HTTP error responses with status codes
+# status → readable HTTP status codes (201 Created, 400 Bad Request, etc.)
+
+from app.models import User
+# Import the User ORM model (SQLAlchemy table definition)
 
 from sqlalchemy.orm import Session
-from app.database import SessionLocal #SessionLocal creates a database session
-from app import crud,schemas
-# crud → database operations
-# schemas → request/response validation (Pydantic)
-from typing import List
-from app.database import get_db
+# SQLAlchemy Session: manages database transactions and queries
 
-# Configure logger
+from app.database import SessionLocal
+# SessionLocal: factory function that creates database sessions
+
+from app import crud, schemas
+# crud → database operations (create, read, update, delete functions)
+# schemas → Pydantic models for request/response validation
+
+from typing import List
+# Type hint for list return types
+
+from app.database import get_db
+# Dependency function that provides database sessions to route handlers
+
+# Configure logger for this module
+# __name__ ensures log messages show the correct module name
 logger = logging.getLogger(__name__)
 
-
+# Create API router with common configuration
 router = APIRouter(prefix="/users", tags=["Users"])
-# Creates a router
-# All endpoints here start with: /users
+# prefix="/users" → All routes in this router start with /users (e.g., /users, /users/{user_id}/documents)
+# tags=["Users"] → Groups these endpoints under "Users" in API documentation (Swagger UI)
+
 
 def get_db():
-    db=SessionLocal()
+    """
+    Database session dependency generator.
+    
+    This function provides a database session to route handlers and ensures proper cleanup.
+    FastAPI's dependency injection automatically:
+    1. Opens a new session before the request
+    2. Injects it into route handlers that declare db: Session = Depends(get_db)
+    3. Closes the session after the request completes (even if errors occur)
+    
+    This is production-grade DB handling that prevents connection leaks.
+    """
+    # Create a new database session
+    db = SessionLocal()
     try:
+        # Yield the session to the route handler
+        # The code pauses here while the route executes
         yield db
     finally:
+        # Always close the session after the request completes
+        # This runs even if an exception occurred
         db.close()
-        
-# FastAPI automatically:
-# Opens session
-# Injects it
-# Closes it
-# production-grade DB handling
 
 
 #POST /users
@@ -78,6 +106,9 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 #GET /users/{user_id}/documents
 @router.get("/{user_id}/documents", response_model=List[schemas.DocumentResponse])
+# @router.get() → HTTP GET method
+# "/{user_id}/documents" → URL path with dynamic parameter (e.g., /users/user123/documents)
+# response_model → Validates/serializes response as list of DocumentResponse objects
 def get_documents(user_id: str, db: Session = Depends(get_db)):
     try:
         logger.info(f"Fetching documents for user: {user_id}")

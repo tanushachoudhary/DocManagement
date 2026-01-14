@@ -5,11 +5,7 @@ It allows external systems to index documents into the vector store for AI/RAG c
 The primary use case is to manually trigger document indexing when documents are created
 through alternative paths (not through the standard upload endpoint).
 """
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models import Document
+from fastapi import APIRouter, HTTPException, status
 from app.services.document_store import index_document
 from app.services.vector_store import save_index
 import logging
