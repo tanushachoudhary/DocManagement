@@ -1,7 +1,8 @@
+import logging
 from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, HTTPException, status 
 #APIRouter → lets you group related endpoints
-#Depends → FastAPI’s dependency injection system
+#Depends → FastAPI's dependency injection system
 #HTTPException → return proper HTTP error responses
 #status → readable HTTP status codes (201, 400, etc.)
 
@@ -14,6 +15,9 @@ from app import crud,schemas
 # schemas → request/response validation (Pydantic)
 from typing import List
 from app.database import get_db
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -35,25 +39,38 @@ def get_db():
 
 
 #POST /users
-# @router.post("",status_code=status.HTTP_201_CREATED)
-# def create_user(user:schemas.UserCreate,db:Session=Depends(get_db)):
-#     try:
-#         return crud.create_user(db,user) #Inserts user into database
-#     except:
-#         raise HTTPException(status_code=400,detail="User already exists") #Handles duplicate user IDs and Returns proper HTTP error
-
 @router.post("", status_code=201)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.id == user.id).first()
+    try:
+        logger.info(f"Attempting to create user with ID: {user.id}")
+        
+        existing = db.query(User).filter(User.id == user.id).first()
 
-    if existing:
-        return existing
+        if existing:
+            logger.warning(f"User with ID {user.id} already exists, returning existing user")
+            return existing
 
-    new_user = User(id=user.id, name=user.name)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
+        new_user = User(id=user.id, name=user.name)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        logger.info(f"Successfully created user with ID: {user.id}")
+        return new_user
+        
+    except IntegrityError as e:
+        db.rollback()
+        logger.error(f"Database integrity error while creating user {user.id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this ID already exists or invalid data provided"
+        )
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Unexpected error while creating user {user.id}: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user"
+        )
 
 
 # user → validated request body
@@ -62,12 +79,29 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 #GET /users/{user_id}/documents
 @router.get("/{user_id}/documents", response_model=List[schemas.DocumentResponse])
 def get_documents(user_id: str, db: Session = Depends(get_db)):
-    
-    # 2. Call the CRUD function
-    documents = crud.get_user_documents(db, user_id)
-    
-    # 3. Safety check: Ensure it returns an empty list, not None
-    if documents is None:
-        return []
+    try:
+        logger.info(f"Fetching documents for user: {user_id}")
         
-    return documents
+        # 2. Call the CRUD function
+        documents = crud.get_user_documents(db, user_id)
+        
+        # 3. Safety check: Ensure it returns an empty list, not None
+        if documents is None:
+            logger.warning(f"No documents found for user {user_id}, returning empty list")
+            return []
+        
+        logger.info(f"Successfully retrieved {len(documents)} documents for user: {user_id}")
+        return documents
+        
+    except ValueError as e:
+        logger.error(f"Invalid user ID format: {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid user ID: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Error fetching documents for user {user_id}: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve documents"
+        )
