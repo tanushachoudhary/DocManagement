@@ -1,3 +1,16 @@
+"""
+Chunk Size (800 characters):
+Optimal for LLM context windows: Most language models can process 800 characters efficiently without excessive token usage
+Semantic coherence: 800 characters typically contains 2-4 complete paragraphs or 150-200 words, which is enough to maintain meaningful context
+Manageable embeddings: Vector databases process ~800 char chunks efficiently for semantic search
+Balance: Large enough to capture context, small enough to be specific for targeted retrieval
+
+Chunk Overlap (150 characters):
+Context preservation: 150 chars (~25-30 words) ensures important information at chunk boundaries isn't lost
+Smooth transitions: When searching, overlapping chunks help catch relevant information that might fall at the edge between two chunks
+Prevents semantic breaks: Without overlap, splitting a sentence across chunks could lose meaning
+~19% overlap ratio: 150/800 = 18.75% is an industry-standard ratio for chunk-overlap balance (not too little, not excessive)
+"""
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def chunk_text(
