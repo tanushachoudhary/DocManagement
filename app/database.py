@@ -4,7 +4,6 @@ from sqlalchemy.orm import sessionmaker,declarative_base #creates DB session(ope
 
 import os
 
-
 # 1. Fetching credentials from Environment Variables (with defaults for safety)
 DB_USER = os.getenv("DB_USER", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "password") 

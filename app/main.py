@@ -1,9 +1,7 @@
 from app.core.env import *
 from fastapi import FastAPI
 from app.database import Base,engine
-from app.routers import users,documents,indexing, search,ai
-from app.database import SessionLocal
-from app.models import User, Document
+from app.routers import users,documents,indexing, search
 from app.routers.ai import ai_router
 from app.services.vector_store import load_index
 

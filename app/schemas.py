@@ -1,4 +1,5 @@
-from pydantic import BaseModel,Field,ConfigDict #pydantic handles request validation, data parsing, automatic error response
+from pydantic import BaseModel,Field,ConfigDict 
+# pydantic handles request validation, data parsing, automatic error response
 # BaseModel--> base class for schemas
 # Field--> adds constraint and metadata
 
@@ -8,7 +9,6 @@ from typing import Optional
 class UserCreate(BaseModel):
     id:str = Field(..., min_length = 1) #... required field
     name:str = Field(..., min_length = 1) # min_length = 1 cannot be empty
-    
     
 #request body for POST /documents
 class DocumentCreate(BaseModel):
@@ -33,13 +33,15 @@ class DocumentResponse(BaseModel):
     
     model_config = ConfigDict(from_attributes=True)
     
-
+#defines required data structure for creatubg/uploading a document
+#used as a request body
 class DocumentUploadCreate(BaseModel):
     id: str
     filename: str
     extracted_text: str
     owner_id: str
 
+# defines response structure returned after successfully uploading a document
 class DocumentUploadResponse(BaseModel):
     id: str
     owner_id: str
@@ -47,6 +49,6 @@ class DocumentUploadResponse(BaseModel):
     extracted_text_length: int
     message: str
     
-    
+# inherits all fields from DocumentResponse and adds message
 class DocumentCreateResponse(DocumentResponse):
     message: str
