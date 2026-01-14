@@ -161,8 +161,8 @@ def load_index():
             with open(STORE_FILE, "rb") as f:
                 documents = pickle.load(f)
                 
-            print(f"🧠 Loaded brain: {index.ntotal} vectors from {AI_DATA_DIR}")
+            print(f"Loaded brain: {index.ntotal} vectors from {AI_DATA_DIR}")
         except Exception as e:
-            print(f"⚠️ Corrupt index found, starting fresh. Error: {e}")
+            print(f" Corrupt index found, starting fresh. Error: {e}")
     else:
         print("Starting with empty AI memory (No index found).")
