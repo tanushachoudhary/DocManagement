@@ -3,11 +3,12 @@
 # to query documents by owner
 
 class DocumentStore:
-    # constructor that initializes the DocumentStore with an empty dictionary(documents) to # store documents
+    # constructor that initializes the DocumentStore with an empty dictionary(documents) 
+    # to store documents
     def __init__(self):
         self._documents = {}
 
-    #adds a document to the store by storing it in the dictionary with doc's ID as the key
+    # adds a document to the store by storing it in the dictionary with doc's ID as the key
     def add_document(self, document):
         self._documents[document.get_id()] = document
 
