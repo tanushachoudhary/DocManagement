@@ -23,7 +23,6 @@ class DocumentCreate(BaseModel):
 class DocumentResponse(BaseModel):
     id: str
     filename: str 
-    content: Optional[str] = None 
     extracted_text: Optional[str] = None 
     owner_id: str
     

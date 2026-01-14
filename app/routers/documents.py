@@ -38,7 +38,7 @@ def create_document(doc: schemas.DocumentCreate, db: Session = Depends(get_db)):
         return {
             "id": new_doc.id,
             "filename": new_doc.filename,
-            "content": new_doc.content,
+            # "content": new_doc.content,
             "extracted_text": new_doc.extracted_text,
             "owner_id": new_doc.owner_id,
             "message": "Document created successfully"  # <--- The message you wanted

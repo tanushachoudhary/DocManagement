@@ -33,7 +33,6 @@ def create_document(db:Session, doc): #Accepts validated document input
     db_doc = models.Document(
         id=doc.id,
         filename=doc.filename,
-        content=doc.content,
         owner_id=doc.owner_id,
         extracted_text=doc.content if hasattr(doc, 'content') else None
     )
