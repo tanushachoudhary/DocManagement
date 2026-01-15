@@ -1,5 +1,6 @@
 from app.core.llm import llm
 
+
 def classify_intent(state):
     prompt = f"""
     You are an intelligent router for a Document Retrieval System.
@@ -34,12 +35,17 @@ def classify_intent(state):
     """
 
     # 1. Invoke LLM
-    response = llm.invoke(prompt).content.strip().lower()
+    response_content = llm.invoke(prompt).content
+    
+    # Handle list response
+    if isinstance(response_content, list):
+        response = str(response_content[0]).strip().lower() if response_content else ""
+    else:
+        response = str(response_content).strip().lower()
 
     # 2. Safety Fallback (in case LLM outputs "intent: retrieve")
     if "retrieve" in response:
         state["intent"] = "retrieve"
-
     else:
         state["intent"] = "no_docs"
     return state
