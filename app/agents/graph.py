@@ -35,9 +35,9 @@ graph.add_conditional_edges(
     }
 )
 
-# 5. Keep your existing logic for "after retrieval" (Safety Net)
-# This is still good! If retrieval runs but finds nothing (empty list),
-# we fallback to 'no_docs' instead of trying to answer with empty context.
+# 5. Keeping existing logic for "after retrieval" (Safety Net)
+# If retrieval runs but finds nothing (empty list),
+# fallback to 'no_docs' instead of trying to answer with empty context.
 def route_after_retrieval(state):
     docs = state.get("documents", [])
     if not docs:

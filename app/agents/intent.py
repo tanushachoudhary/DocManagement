@@ -1,6 +1,5 @@
 from app.core.llm import llm
 
-
 def classify_intent(state):
     prompt = f"""
     You are an intelligent router for a Document Retrieval System.
@@ -35,10 +34,11 @@ def classify_intent(state):
     """
 
     # 1. Invoke LLM
-    response_content = llm.invoke(prompt).content
+    response_content = llm.invoke(prompt).content # returns a list
     
     # Handle list response
     if isinstance(response_content, list):
+        # checks if its a list and extracts the first element
         response = str(response_content[0]).strip().lower() if response_content else ""
     else:
         response = str(response_content).strip().lower()

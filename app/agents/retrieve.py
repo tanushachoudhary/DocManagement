@@ -16,15 +16,16 @@ def retrieve_docs(state):
     
     Args:
         state (dict): Current graph state containing at minimum:
-                      - "query" (str): User's search query
+            - "query" (str): User's search query
                       
     Returns:
         dict: Updated state with new key:
-              - "documents" (list): Retrieved document chunks with metadata
+            - "documents" (list): Retrieved document chunks with metadata
               
     Flow:
         User Query → retrieve_docs() → [documents] → answer_agent()
     """
+    
     # Perform semantic search to find relevant document chunks
     # retrieve_documents() queries the FAISS vector store and returns matching chunks
     state["documents"] = retrieve_documents(state["query"])
